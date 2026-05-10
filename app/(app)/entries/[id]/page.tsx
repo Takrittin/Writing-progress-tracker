@@ -35,12 +35,19 @@ function hasDisplayFeedbackForPair(items: DisplaySentenceFeedback[], originalSen
   );
 }
 
+function isUnchangedSentenceRewrite(item: SavedSentenceFeedback) {
+  return (
+    normalizeSentenceText(item.originalSentence) === normalizeSentenceText(item.improvedSentence) &&
+    normalizeSentenceText(item.mistakeType ?? "") === "sentence rewrite"
+  );
+}
+
 function getDisplaySentenceFeedback(
   originalText: string,
   improvedText: string,
   savedFeedback: SavedSentenceFeedback[]
 ): DisplaySentenceFeedback[] {
-  const displayFeedback: DisplaySentenceFeedback[] = [...savedFeedback];
+  const displayFeedback: DisplaySentenceFeedback[] = savedFeedback.filter((item) => !isUnchangedSentenceRewrite(item));
   const changedPairs = getChangedSentencePairs(originalText, improvedText);
 
   changedPairs.forEach((pair, index) => {

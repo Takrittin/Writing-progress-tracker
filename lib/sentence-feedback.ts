@@ -30,21 +30,20 @@ export function normalizeSentenceText(text: string) {
 export function getChangedSentencePairs(originalText: string, improvedText: string): SentencePair[] {
   const originalSentences = splitIntoSentences(originalText);
   const improvedSentences = splitIntoSentences(improvedText);
-  const sentenceCount = Math.max(originalSentences.length, improvedSentences.length);
   const pairs: SentencePair[] = [];
 
-  for (let index = 0; index < sentenceCount; index += 1) {
-    const originalSentence = originalSentences[index] ?? "";
-    const improvedSentence = improvedSentences[index] ?? "";
+  if (originalSentences.length !== improvedSentences.length) {
+    return pairs;
+  }
 
-    if (!originalSentence && !improvedSentence) {
-      continue;
-    }
+  for (let index = 0; index < originalSentences.length; index += 1) {
+    const originalSentence = originalSentences[index];
+    const improvedSentence = improvedSentences[index];
 
     if (normalizeSentenceText(originalSentence) !== normalizeSentenceText(improvedSentence)) {
       pairs.push({
-        originalSentence: originalSentence || "Original writing",
-        improvedSentence: improvedSentence || originalSentence
+        originalSentence,
+        improvedSentence
       });
     }
   }
