@@ -30,8 +30,8 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
     "New Writing Analysis";
 
   return (
-    <div className="min-h-screen px-3 py-3 sm:px-6 sm:py-7 lg:px-16 lg:pb-[48px] lg:pt-[58px]">
-      <div className="liquid-frame mx-auto grid min-h-[calc(100vh-24px)] w-full max-w-[1240px] overflow-hidden rounded-[28px] md:min-h-[calc(100vh-56px)] md:grid-cols-[276px_minmax(0,1fr)] lg:min-h-[calc(100vh-106px)]">
+    <div className="min-h-screen">
+      <div className="liquid-frame grid min-h-screen w-full overflow-hidden md:grid-cols-[276px_minmax(0,1fr)]">
         <aside className="liquid-sidebar relative hidden min-h-full px-5 py-6 md:block">
           <Link href="/new" className="flex items-center gap-3">
             <span className="icon-glass flex h-9 w-9 items-center justify-center rounded-xl text-[hsl(var(--primary))]">
@@ -83,7 +83,7 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
           </div>
         </aside>
 
-        <section className="relative min-h-[calc(100vh-24px)] bg-[hsl(var(--background-strong)/0.45)] md:min-h-full">
+        <section className="relative min-h-screen bg-[hsl(var(--background-strong)/0.45)] md:min-h-full">
           <header className="sticky top-0 z-20 border-b border-white/45 bg-[hsl(var(--background-strong)/0.58)] px-4 py-3 backdrop-blur-2xl md:hidden">
             <div className="flex items-center justify-between gap-3">
               <Link href="/new" className="flex min-w-0 items-center gap-2">
