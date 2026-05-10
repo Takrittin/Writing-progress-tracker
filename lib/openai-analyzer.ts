@@ -1,6 +1,13 @@
 import OpenAI from "openai";
 import { getOpenAIConfig, getOpenRouterConfig } from "@/lib/env";
 import { analyzeWritingSchema } from "@/lib/analysis-schema";
+import {
+  createChangedSentenceFeedback,
+  createGeneralSentenceFeedback,
+  getChangedSentencePairs,
+  normalizeSentenceText,
+  type SentencePair
+} from "@/lib/sentence-feedback";
 import type { AnalyzeWritingResult } from "@/types/writing";
 
 type OpenRouterChatCompletionParams = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming & {
@@ -61,12 +68,86 @@ const responseSchema = {
   }
 };
 
-const coachingInstructions =
-  "You are an English writing coach for students. Return only strict JSON matching the schema. Be encouraging, concrete, and concise. Preserve the student's meaning while improving grammar, clarity, naturalness, punctuation, vocabulary, organization, and sentence variety. All scores must be integers from 1 to 100.";
+const coachingInstructions = [
+  "You are an English writing coach for students.",
+  "Return only strict JSON matching the schema.",
+  "Be encouraging, concrete, and concise.",
+  "Preserve the student's meaning while improving grammar, clarity, naturalness, punctuation, vocabulary, organization, and sentence variety.",
+  "All scores must be integers from 1 to 100.",
+  "Always include at least one main_advice item and at least one sentence_feedback item.",
+  "Include one sentence_feedback item for every sentence that changed in improved_text.",
+  "If the writing has no obvious sentence-level mistake, include one general feedback item that uses the original sentence, a polished version, and explains why it is already strong or how it could be refined."
+].join(" ");
 
-function parseAnalysisJson(content: string) {
+function isFeedbackObject(item: unknown) {
+  return item != null && typeof item === "object" && !Array.isArray(item);
+}
+
+function hasFeedbackForPair(items: unknown[], pair: SentencePair) {
+  const originalSentence = normalizeSentenceText(pair.originalSentence);
+  const improvedSentence = normalizeSentenceText(pair.improvedSentence);
+
+  return items.some((item) => {
+    if (!isFeedbackObject(item)) {
+      return false;
+    }
+
+    const feedback = item as {
+      original_sentence?: unknown;
+      improved_sentence?: unknown;
+    };
+
+    return (
+      (typeof feedback.original_sentence === "string" &&
+        normalizeSentenceText(feedback.original_sentence) === originalSentence) ||
+      (typeof feedback.improved_sentence === "string" &&
+        normalizeSentenceText(feedback.improved_sentence) === improvedSentence)
+    );
+  });
+}
+
+function normalizeAnalysisPayload(parsed: unknown, originalText: string) {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return parsed;
+  }
+
+  const payload = parsed as {
+    improved_text?: unknown;
+    main_advice?: unknown;
+    sentence_feedback?: unknown;
+  };
+
+  if (
+    payload.main_advice == null ||
+    (Array.isArray(payload.main_advice) && payload.main_advice.length === 0)
+  ) {
+    payload.main_advice = [
+      "Review the improved version and focus on clarity, natural wording, and sentence flow."
+    ];
+  }
+
+  const improvedText = typeof payload.improved_text === "string" ? payload.improved_text : "";
+  const changedPairs = improvedText ? getChangedSentencePairs(originalText, improvedText) : [];
+
+  if (!Array.isArray(payload.sentence_feedback) || payload.sentence_feedback.length === 0) {
+    payload.sentence_feedback =
+      changedPairs.length > 0
+        ? changedPairs.map(createChangedSentenceFeedback)
+        : [createGeneralSentenceFeedback(originalText, improvedText)];
+  } else {
+    for (const pair of changedPairs) {
+      if (!hasFeedbackForPair(payload.sentence_feedback, pair)) {
+        payload.sentence_feedback.push(createChangedSentenceFeedback(pair));
+      }
+    }
+  }
+
+  return payload;
+}
+
+function parseAnalysisJson(content: string, originalText: string) {
   const parsed = JSON.parse(content);
-  return analyzeWritingSchema.parse(parsed);
+  return analyzeWritingSchema.parse(normalizeAnalysisPayload(parsed, originalText));
 }
 
 async function analyzeWithOpenAI(input: {
@@ -106,7 +187,7 @@ async function analyzeWithOpenAI(input: {
     }
   });
 
-  return parseAnalysisJson(response.output_text);
+  return parseAnalysisJson(response.output_text, input.originalText);
 }
 
 async function requestOpenRouterAnalysis(input: {
@@ -145,7 +226,7 @@ async function requestOpenRouterAnalysis(input: {
     throw new Error("OpenRouter returned an empty analysis response.");
   }
 
-  return parseAnalysisJson(content);
+  return parseAnalysisJson(content, input.originalText);
 }
 
 async function analyzeWithOpenRouter(input: {
