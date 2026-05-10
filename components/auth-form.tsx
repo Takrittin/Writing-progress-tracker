@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Mail, Lock, UserPlus, LogIn } from "lucide-react";
+import { Loader2, Mail, Lock, UserPlus, LogIn, UserRound } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -9,6 +9,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const searchParams = useSearchParams();
   const requestedNext = searchParams.get("next");
   const next = requestedNext?.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/dashboard";
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +24,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       const response = await fetch(`/api/auth/${mode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(mode === "signup" ? { username, email, password } : { email, password })
       });
       const result = (await response.json()) as { error?: string };
 
@@ -50,7 +51,30 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </p>
       </div>
 
-      <label className="block text-sm font-medium" htmlFor="email">
+      {mode === "signup" ? (
+        <>
+          <label className="block text-sm font-medium" htmlFor="username">
+            Username
+          </label>
+          <div className="liquid-input mt-2 flex h-12 items-center gap-2 rounded-full px-4">
+            <UserRound className="h-4 w-4 text-[hsl(var(--muted))]" />
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              required
+              minLength={2}
+              maxLength={32}
+              pattern="[A-Za-z0-9_]+"
+              className="focus-ring min-w-0 flex-1 bg-transparent text-sm outline-none"
+              autoComplete="username"
+            />
+          </div>
+        </>
+      ) : null}
+
+      <label className={mode === "signup" ? "mt-5 block text-sm font-medium" : "block text-sm font-medium"} htmlFor="email">
         Email
       </label>
       <div className="liquid-input mt-2 flex h-12 items-center gap-2 rounded-full px-4">

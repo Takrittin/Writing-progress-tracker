@@ -23,7 +23,15 @@ const navItems = [
   { href: "/settings", label: "Settings", icon: Settings }
 ];
 
-export function AppShell({ children, email }: { children: React.ReactNode; email?: string | null }) {
+export function AppShell({
+  children,
+  email,
+  username
+}: {
+  children: React.ReactNode;
+  email?: string | null;
+  username?: string | null;
+}) {
   const pathname = usePathname();
   const title =
     navItems.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.label ??
@@ -74,12 +82,13 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
           </nav>
 
           <div className="absolute bottom-5 left-5 right-5">
-            <div className="flex items-center gap-3" title={email ?? "User Profile"}>
+            <div className="flex items-center gap-3" title={email ?? username ?? "User Profile"}>
               <span className="avatar-glow flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[hsl(var(--primary))] shadow-[0_10px_24px_hsl(var(--shadow)/0.28)]">
                 <UserRound className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[17px] font-medium">User Profile</p>
+                <p className="truncate text-[17px] font-medium">{username ?? "User Profile"}</p>
+                {email ? <p className="truncate text-xs text-[hsl(var(--muted))]">{email}</p> : null}
               </div>
             </div>
           </div>

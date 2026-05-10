@@ -12,5 +12,9 @@ export default async function ProtectedLayout({ children }: { children: React.Re
 
   const { user } = await requireUser();
 
-  return <AppShell email={user.email}>{children}</AppShell>;
+  return (
+    <AppShell email={user.email} username={user.username}>
+      {children}
+    </AppShell>
+  );
 }

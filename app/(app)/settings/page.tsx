@@ -23,7 +23,8 @@ export default async function SettingsPage() {
           <span className="icon-glass flex h-12 w-12 items-center justify-center rounded-2xl text-[hsl(var(--primary))]">
             <UserRound className="h-6 w-6" />
           </span>
-          <h2 className="mt-5 text-xl font-semibold">User Profile</h2>
+          <p className="mt-5 text-sm font-medium text-[hsl(var(--muted))]">User Profile</p>
+          <h2 className="mt-2 text-xl font-semibold">{user.username}</h2>
           <p className="mt-2 text-sm text-[hsl(var(--muted))]">{user.email}</p>
         </section>
 

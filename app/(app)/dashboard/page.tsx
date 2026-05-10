@@ -26,7 +26,7 @@ export default async function DashboardPage() {
     <>
       <PageHeading
         title="Dashboard"
-        description={`Welcome${user.email ? `, ${user.email}` : ""}.`}
+        description={`Welcome${user.username ? `, ${user.username}` : ""}.`}
         action={<ButtonLink href="/new">New writing</ButtonLink>}
       />
 

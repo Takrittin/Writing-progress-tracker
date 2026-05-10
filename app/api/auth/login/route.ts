@@ -35,17 +35,17 @@ export async function POST(request: Request) {
     const input = credentialsSchema.parse(await request.json());
     const user = await prisma.user.findUnique({
       where: { email: input.email },
-      select: { id: true, email: true, passwordHash: true }
+      select: { id: true, email: true, username: true, passwordHash: true }
     });
 
     if (!user || !(await verifyPassword(input.password, user.passwordHash))) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
-    const token = await createSessionToken({ id: user.id, email: user.email });
+    const token = await createSessionToken({ id: user.id, email: user.email, username: user.username });
     await setSessionCookie(token);
 
-    return NextResponse.json({ user: { id: user.id, email: user.email } });
+    return NextResponse.json({ user: { id: user.id, email: user.email, username: user.username } });
   } catch (error) {
     return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }

@@ -8,6 +8,13 @@ import { createSessionToken, setSessionCookie } from "@/lib/session";
 
 const credentialsSchema = z.object({
   email: z.string().trim().email("Enter a valid email.").transform((value) => value.toLowerCase()),
+  username: z
+    .string()
+    .trim()
+    .min(2, "Username must be at least 2 characters.")
+    .max(32, "Username must be 32 characters or less.")
+    .regex(/^[a-zA-Z0-9_]+$/, "Use only letters, numbers, and underscores for your username.")
+    .transform((value) => value.toLowerCase()),
   password: z.string().min(6, "Password must be at least 6 characters.").max(128)
 });
 
@@ -17,6 +24,12 @@ function getErrorMessage(error: unknown) {
   }
 
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    const target = Array.isArray(error.meta?.target) ? error.meta.target : [];
+
+    if (target.includes("username")) {
+      return "That username is already taken.";
+    }
+
     return "An account with this email already exists.";
   }
 
@@ -41,9 +54,10 @@ export async function POST(request: Request) {
     const user = await prisma.user.create({
       data: {
         email: input.email,
+        username: input.username,
         passwordHash
       },
-      select: { id: true, email: true }
+      select: { id: true, email: true, username: true }
     });
 
     const token = await createSessionToken(user);

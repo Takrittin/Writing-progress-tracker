@@ -8,10 +8,12 @@ const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 export type SessionUser = {
   id: string;
   email: string;
+  username?: string;
 };
 
 type SessionPayload = {
   email: string;
+  username?: string;
 };
 
 function getEncodedSecret() {
@@ -29,7 +31,13 @@ function getCookieOptions() {
 }
 
 export async function createSessionToken(user: SessionUser) {
-  return new SignJWT({ email: user.email })
+  const payload: SessionPayload = { email: user.email };
+
+  if (user.username) {
+    payload.username = user.username;
+  }
+
+  return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(user.id)
     .setIssuedAt()
@@ -51,7 +59,8 @@ export async function verifySessionToken(token?: string | null): Promise<Session
 
     return {
       id: payload.sub,
-      email: payload.email
+      email: payload.email,
+      username: payload.username
     };
   } catch {
     return null;
