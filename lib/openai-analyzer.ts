@@ -72,12 +72,17 @@ const coachingInstructions = [
   "You are an English writing coach for students.",
   "Return only strict JSON matching the schema.",
   "Be encouraging, concrete, and concise.",
+  "Score and revise only the student writing text. Do not use the entry title or any outside context when scoring.",
   "Preserve the student's meaning while improving grammar, clarity, naturalness, punctuation, vocabulary, organization, and sentence variety.",
   "All scores must be integers from 1 to 100.",
   "Always include at least one main_advice item and at least one sentence_feedback item.",
   "Include one sentence_feedback item for every sentence that changed in improved_text.",
   "If the writing has no obvious sentence-level mistake, include one general feedback item that uses the original sentence, a polished version, and explains why it is already strong or how it could be refined."
 ].join(" ");
+
+function createAnalysisPrompt(originalText: string) {
+  return `Student writing:\n${originalText}`;
+}
 
 function isFeedbackObject(item: unknown) {
   return item != null && typeof item === "object" && !Array.isArray(item);
@@ -164,6 +169,7 @@ async function analyzeWithOpenAI(input: {
 
   const response = await client.responses.create({
     model: config.model,
+    temperature: 0,
     instructions: coachingInstructions,
     input: [
       {
@@ -171,7 +177,7 @@ async function analyzeWithOpenAI(input: {
         content: [
           {
             type: "input_text",
-            text: `Title: ${input.title}\n\nStudent writing:\n${input.originalText}`
+            text: createAnalysisPrompt(input.originalText)
           }
         ]
       }
@@ -196,7 +202,7 @@ async function requestOpenRouterAnalysis(input: {
 }, client: OpenAI, model: string): Promise<AnalyzeWritingResult> {
   const response = await client.chat.completions.create({
     model,
-    temperature: 0.2,
+    temperature: 0,
     messages: [
       {
         role: "system",
@@ -204,7 +210,7 @@ async function requestOpenRouterAnalysis(input: {
       },
       {
         role: "user",
-        content: `Title: ${input.title}\n\nStudent writing:\n${input.originalText}`
+        content: createAnalysisPrompt(input.originalText)
       }
     ],
     response_format: {
