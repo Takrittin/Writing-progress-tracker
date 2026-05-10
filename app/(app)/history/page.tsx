@@ -1,5 +1,6 @@
 import { FileText } from "lucide-react";
 import Link from "next/link";
+import { DeleteEntryButton } from "@/components/delete-entry-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
 import { requireUser } from "@/lib/auth";
@@ -32,29 +33,32 @@ export default async function HistoryPage() {
         />
       ) : (
         <div className="liquid-card overflow-hidden rounded-[26px]">
-          <div className="hidden grid-cols-[160px_1fr_120px_120px_120px] gap-4 border-b border-[hsl(var(--border)/0.42)] bg-white/24 px-5 py-3 text-sm font-semibold text-[hsl(var(--muted))] md:grid">
+          <div className="hidden grid-cols-[150px_1fr_110px_90px_190px] gap-4 border-b border-[hsl(var(--border)/0.42)] bg-white/24 px-5 py-3 text-sm font-semibold text-[hsl(var(--muted))] md:grid">
             <span>Date</span>
             <span>Title</span>
             <span>Word count</span>
             <span>Score</span>
-            <span></span>
+            <span>Actions</span>
           </div>
           <div className="divide-y divide-[hsl(var(--border)/0.38)]">
             {rows.map((entry) => (
               <div
                 key={entry.id}
-                className="grid gap-3 px-5 py-4 transition hover:bg-white/34 md:grid-cols-[160px_1fr_120px_120px_120px] md:items-center"
+                className="grid gap-3 px-5 py-4 transition hover:bg-white/34 md:grid-cols-[150px_1fr_110px_90px_190px] md:items-center"
               >
                 <p className="text-sm text-[hsl(var(--muted))]">{formatDate(entry.createdAt.toISOString())}</p>
                 <p className="font-semibold">{entry.title}</p>
                 <p className="text-sm text-[hsl(var(--muted))]">{entry.wordCount ?? 0} words</p>
                 <p className="font-semibold text-[hsl(var(--primary))]">{entry.overallScore ?? 0}/100</p>
-                <Link
-                  href={`/entries/${entry.id}`}
-                  className="focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/60 bg-white/42 px-4 text-sm font-semibold transition hover:bg-white/64"
-                >
-                  Open
-                </Link>
+                <div className="flex flex-col gap-2 sm:flex-row md:justify-end">
+                  <Link
+                    href={`/entries/${entry.id}`}
+                    className="focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/60 bg-white/42 px-4 text-sm font-semibold transition hover:bg-white/64"
+                  >
+                    Open
+                  </Link>
+                  <DeleteEntryButton entryId={entry.id} title={entry.title} />
+                </div>
               </div>
             ))}
           </div>
