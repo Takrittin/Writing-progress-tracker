@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String         @id @default(uuid()) @db.Uuid
+  email          String         @unique
+  passwordHash   String         @map("password_hash")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  writingEntries WritingEntry[]
+
+  @@map("users")
+}
+
+model WritingEntry {
+  id               String             @id @default(uuid()) @db.Uuid
+  userId           String             @map("user_id") @db.Uuid
+  title            String
+  originalText     String             @map("original_text")
+  improvedText     String?            @map("improved_text")
+  mainAdvice       String[]           @default([]) @map("main_advice")
+  wordCount        Int?               @map("word_count")
+  overallScore     Int?               @map("overall_score")
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scores           WritingScore?
+  sentenceFeedback SentenceFeedback[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("writing_entries")
+}
+
+model WritingScore {
+  id              String       @id @default(uuid()) @db.Uuid
+  writingEntryId  String       @unique @map("writing_entry_id") @db.Uuid
+  grammar         Int?
+  vocabulary      Int?
+  spelling        Int?
+  punctuation     Int?
+  organization    Int?
+  clarity         Int?
+  naturalness     Int?
+  sentenceVariety Int?         @map("sentence_variety")
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  writingEntry    WritingEntry @relation(fields: [writingEntryId], references: [id], onDelete: Cascade)
+
+  @@index([writingEntryId])
+  @@map("writing_scores")
+}
+
+model SentenceFeedback {
+  id               String       @id @default(uuid()) @db.Uuid
+  writingEntryId   String       @map("writing_entry_id") @db.Uuid
+  originalSentence String       @map("original_sentence")
+  improvedSentence String       @map("improved_sentence")
+  explanation      String
+  mistakeType      String?      @map("mistake_type")
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  writingEntry     WritingEntry @relation(fields: [writingEntryId], references: [id], onDelete: Cascade)
+
+  @@index([writingEntryId])
+  @@map("sentence_feedback")
+}
