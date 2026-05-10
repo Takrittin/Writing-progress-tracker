@@ -51,12 +51,30 @@ export function ProgressCharts({
 
       <div className="liquid-card rounded-[26px] p-5 lg:col-span-2">
         <h2 className="text-lg font-semibold">Average metric scores</h2>
-        <div className="mt-5 h-72">
+        <div className="mt-5 h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={metricData} margin={{ left: 0, right: 12, top: 12, bottom: 0 }}>
+            <BarChart
+              data={metricData}
+              layout="vertical"
+              margin={{ left: 8, right: 18, top: 12, bottom: 0 }}
+              barCategoryGap={10}
+            >
               <CartesianGrid stroke="hsl(var(--border) / 0.48)" strokeDasharray="3 3" />
-              <XAxis dataKey="metric" stroke="hsl(var(--muted))" tickLine={false} axisLine={false} />
-              <YAxis domain={[0, 100]} stroke="hsl(var(--muted))" tickLine={false} axisLine={false} />
+              <XAxis
+                type="number"
+                domain={[0, 100]}
+                stroke="hsl(var(--muted))"
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                type="category"
+                dataKey="metric"
+                width={112}
+                stroke="hsl(var(--muted))"
+                tickLine={false}
+                axisLine={false}
+              />
               <Tooltip
                 contentStyle={{
                   borderRadius: 8,
@@ -65,7 +83,7 @@ export function ProgressCharts({
                   color: "hsl(var(--foreground))"
                 }}
               />
-              <Bar dataKey="score" radius={[10, 10, 0, 0]} fill="hsl(var(--primary))" />
+              <Bar dataKey="score" radius={[0, 10, 10, 0]} fill="hsl(var(--primary))" />
             </BarChart>
           </ResponsiveContainer>
         </div>
