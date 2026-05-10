@@ -1,3 +1,4 @@
+import { AnalysisJobProvider } from "@/components/analysis-job-provider";
 import { AppShell } from "@/components/app-shell";
 import { SetupRequired } from "@/components/setup-required";
 import { requireUser } from "@/lib/auth";
@@ -13,8 +14,10 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   const { user } = await requireUser();
 
   return (
-    <AppShell email={user.email} username={user.username}>
-      {children}
-    </AppShell>
+    <AnalysisJobProvider>
+      <AppShell email={user.email} username={user.username}>
+        {children}
+      </AppShell>
+    </AnalysisJobProvider>
   );
 }

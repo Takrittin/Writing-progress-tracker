@@ -1,47 +1,115 @@
 "use client";
 
 import { Loader2, Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useAnalysisJob, WRITING_DRAFT_STORAGE_KEY } from "@/components/analysis-job-provider";
 import { countWords } from "@/lib/utils";
 
 export function WritingForm() {
-  const router = useRouter();
+  const { isAnalyzing, startAnalysis } = useAnalysisJob();
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isPending, setIsPending] = useState(false);
+  const [hasLoadedDraft, setHasLoadedDraft] = useState(false);
+  const isMountedRef = useRef(false);
   const wordCount = useMemo(() => countWords(text), [text]);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-    setIsPending(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let savedTitle = "";
+    let savedText = "";
 
     try {
-      const response = await fetch("/api/analyze-writing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, original_text: text })
-      });
+      const savedDraft = window.localStorage.getItem(WRITING_DRAFT_STORAGE_KEY);
 
-      const payload = await response.json();
+      if (savedDraft) {
+        const parsed = JSON.parse(savedDraft) as { title?: unknown; text?: unknown };
 
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Could not analyze writing.");
+        if (typeof parsed.title === "string") {
+          savedTitle = parsed.title;
+        }
+
+        if (typeof parsed.text === "string") {
+          savedText = parsed.text;
+        }
       }
+    } catch {
+      try {
+        window.localStorage.removeItem(WRITING_DRAFT_STORAGE_KEY);
+      } catch {
+        // Local storage can be blocked; ignore and let the form continue.
+      }
+    }
 
-      router.push(`/entries/${payload.entry_id}`);
-      router.refresh();
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not analyze writing.");
-    } finally {
-      setIsPending(false);
+    const timeout = window.setTimeout(() => {
+      const currentTitle = document.getElementById("title");
+      const currentText = document.getElementById("original_text");
+      const titleValue = currentTitle instanceof HTMLInputElement ? currentTitle.value : "";
+      const textValue = currentText instanceof HTMLTextAreaElement ? currentText.value : "";
+
+      setTitle(titleValue || savedTitle);
+      setText(textValue || savedText);
+      setHasLoadedDraft(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedDraft) {
+      return;
+    }
+
+    try {
+      if (title.trim() || text.trim()) {
+        window.localStorage.setItem(WRITING_DRAFT_STORAGE_KEY, JSON.stringify({ title, text }));
+      } else {
+        window.localStorage.removeItem(WRITING_DRAFT_STORAGE_KEY);
+      }
+    } catch {
+      // Draft persistence is a convenience; the form still works if storage is blocked.
+    }
+  }, [hasLoadedDraft, text, title]);
+
+  async function submitAnalysis() {
+    setError(null);
+
+    const result = await startAnalysis({ title, originalText: text });
+
+    if (!result.ok && isMountedRef.current) {
+      setError(result.error);
     }
   }
 
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void submitAnalysis();
+  }
+
+  function handleAnalyzeClick() {
+    const form = document.getElementById("writing-form");
+
+    if (form instanceof HTMLFormElement && !form.reportValidity()) {
+      return;
+    }
+
+    void submitAnalysis();
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="mx-auto grid w-full max-w-[728px] gap-7 md:pt-1">
+    <form
+      id="writing-form"
+      data-ready={hasLoadedDraft ? "true" : "false"}
+      onSubmit={handleSubmit}
+      className="mx-auto grid w-full max-w-[728px] gap-7 md:pt-1"
+    >
       <div>
         <label className="mb-2 block text-[18px] font-semibold" htmlFor="title">
           Title
@@ -52,8 +120,9 @@ export function WritingForm() {
           onChange={(event) => setTitle(event.target.value)}
           placeholder="Title"
           required
+          disabled={isAnalyzing}
           maxLength={120}
-          className="focus-ring liquid-input h-[60px] w-full rounded-full px-5 text-[21px] outline-none transition placeholder:text-[hsl(var(--muted)/0.5)]"
+          className="focus-ring liquid-input h-[60px] w-full rounded-full px-5 text-[21px] outline-none transition placeholder:text-[hsl(var(--muted)/0.5)] disabled:cursor-not-allowed disabled:opacity-70"
         />
       </div>
 
@@ -74,10 +143,11 @@ export function WritingForm() {
           onChange={(event) => setText(event.target.value)}
           placeholder="Start typing your draft... We're here to help you improve!"
           required
+          disabled={isAnalyzing}
           minLength={10}
           maxLength={12000}
           rows={16}
-          className="focus-ring liquid-textarea h-[278px] w-full resize-y rounded-2xl px-5 py-5 text-[17px] leading-7 outline-none transition placeholder:text-[hsl(var(--muted)/0.75)]"
+          className="focus-ring liquid-textarea h-[278px] w-full resize-y rounded-2xl px-5 py-5 text-[17px] leading-7 outline-none transition placeholder:text-[hsl(var(--muted)/0.75)] disabled:cursor-not-allowed disabled:opacity-70"
         />
       </div>
 
@@ -89,12 +159,13 @@ export function WritingForm() {
 
       <div className="flex flex-col items-center gap-3">
         <button
-          type="submit"
-          disabled={isPending}
+          type="button"
+          onClick={handleAnalyzeClick}
+          disabled={isAnalyzing}
           className="focus-ring primary-gradient inline-flex h-12 min-w-[252px] items-center justify-center gap-2 rounded-full px-8 text-[17px] font-semibold text-white transition hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {isPending ? "Analyzing" : "Analyze Writing"}
+          {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          {isAnalyzing ? "Analyzing" : "Analyze Writing"}
         </button>
         <p className="text-center text-[16px] text-[hsl(var(--muted))]">
           Let&apos;s refine your work! Analysis saves automatically.
