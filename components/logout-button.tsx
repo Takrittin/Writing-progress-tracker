@@ -22,7 +22,7 @@ export function LogoutButton({ compact = false }: { compact?: boolean }) {
       onClick={handleLogout}
       disabled={isPending}
       className={cn(
-        "focus-ring inline-flex items-center justify-center gap-2 rounded-xl border border-white/60 bg-white/42 text-sm font-medium text-[hsl(var(--muted))] shadow-[0_8px_18px_hsl(var(--shadow)/0.16)] transition hover:-translate-y-0.5 hover:text-[hsl(var(--foreground))] disabled:cursor-not-allowed disabled:opacity-60",
+        "focus-ring glass-action inline-flex items-center justify-center gap-2 rounded-xl border border-white/60 bg-white/42 text-sm font-medium text-[hsl(var(--muted))] shadow-[0_8px_18px_hsl(var(--shadow)/0.16)] transition hover:-translate-y-0.5 hover:text-[hsl(var(--foreground))] disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/14 dark:bg-white/10 dark:text-[hsl(var(--foreground)/0.78)] dark:hover:bg-white/14 dark:hover:text-[hsl(var(--foreground))]",
         compact ? "h-9 w-9 px-0" : "h-10 px-3"
       )}
     >

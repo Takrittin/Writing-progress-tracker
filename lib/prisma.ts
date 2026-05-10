@@ -5,8 +5,12 @@ const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
 };
 
-const connectionString =
-  process.env.DATABASE_URL ?? "postgresql://user:password@localhost:5432/missing";
+function normalizePgSslMode(databaseUrl: string) {
+  return databaseUrl.replace(/([?&]sslmode=)(prefer|require|verify-ca)(?=&|$)/i, "$1verify-full");
+}
+
+const rawConnectionString = process.env.DATABASE_URL ?? "postgresql://user:password@localhost:5432/missing";
+const connectionString = normalizePgSslMode(rawConnectionString);
 const adapter = new PrismaPg({ connectionString });
 
 export const prisma =

@@ -15,10 +15,10 @@ export function StatCard({
   tone?: "primary" | "success" | "warning" | "danger";
 }) {
   const toneClass = {
-    primary: "text-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.13)]",
-    success: "text-[hsl(var(--success))] bg-[hsl(var(--success)/0.12)]",
-    warning: "text-[hsl(var(--warning))] bg-[hsl(var(--warning)/0.14)]",
-    danger: "text-[hsl(var(--danger))] bg-[hsl(var(--danger)/0.12)]"
+    primary: "border-[hsl(var(--primary)/0.28)] bg-[hsl(var(--primary)/0.13)] text-[hsl(var(--primary))] dark:border-[hsl(var(--primary)/0.44)] dark:bg-[hsl(var(--primary)/0.22)]",
+    success: "border-[hsl(var(--success)/0.26)] bg-[hsl(var(--success)/0.12)] text-[hsl(var(--success))] dark:border-[hsl(var(--success)/0.42)] dark:bg-[hsl(var(--success)/0.2)]",
+    warning: "border-[hsl(var(--warning)/0.28)] bg-[hsl(var(--warning)/0.14)] text-[hsl(var(--warning))] dark:border-[hsl(var(--warning)/0.42)] dark:bg-[hsl(var(--warning)/0.2)]",
+    danger: "border-[hsl(var(--danger)/0.26)] bg-[hsl(var(--danger)/0.12)] text-[hsl(var(--danger))] dark:border-[hsl(var(--danger)/0.42)] dark:bg-[hsl(var(--danger)/0.2)]"
   }[tone];
 
   return (
@@ -29,7 +29,12 @@ export function StatCard({
           <p className="mt-3 text-[32px] font-semibold tracking-normal">{value}</p>
           {detail ? <p className="mt-2 text-sm leading-5 text-[hsl(var(--muted))]">{detail}</p> : null}
         </div>
-        <span className={cn("flex h-11 w-11 items-center justify-center rounded-2xl shadow-[inset_0_1px_0_white]", toneClass)}>
+        <span
+          className={cn(
+            "flex h-11 w-11 items-center justify-center rounded-2xl border shadow-[inset_0_1px_0_white] dark:shadow-[inset_0_1px_0_hsl(0_0%_100%/0.14)]",
+            toneClass
+          )}
+        >
           <Icon className="h-5 w-5" strokeWidth={1.9} />
         </span>
       </div>

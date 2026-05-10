@@ -54,14 +54,16 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
                   className={cn(
                     "flex h-12 items-center gap-4 rounded-xl border px-3 text-[17px] font-medium transition duration-200",
                     active
-                      ? "border-white/70 bg-white/54 text-[hsl(var(--foreground))] shadow-[0_12px_28px_hsl(var(--shadow)/0.32)]"
-                      : "border-transparent text-[hsl(var(--foreground)/0.82)] hover:border-white/55 hover:bg-white/32"
+                      ? "nav-item-active border-white/70 bg-white/54 text-[hsl(var(--foreground))] shadow-[0_12px_28px_hsl(var(--shadow)/0.32)] dark:border-white/16 dark:bg-white/10 dark:shadow-[0_12px_30px_hsl(var(--shadow)/0.42)]"
+                      : "border-transparent text-[hsl(var(--foreground)/0.82)] hover:border-white/55 hover:bg-white/32 dark:hover:border-white/16 dark:hover:bg-white/8"
                   )}
                 >
                   <Icon
                     className={cn(
                       "h-5 w-5",
-                      active ? "text-[hsl(var(--primary))]" : "text-[hsl(var(--muted))]"
+                      active
+                        ? "text-[hsl(var(--primary))] dark:drop-shadow-[0_0_8px_hsl(var(--primary)/0.38)]"
+                        : "text-[hsl(var(--muted))]"
                     )}
                     strokeWidth={1.9}
                   />
@@ -105,7 +107,7 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
           </main>
         </section>
 
-        <nav className="fixed bottom-3 left-3 right-3 z-30 grid grid-cols-5 rounded-[22px] border border-white/60 bg-white/62 px-2 py-2 shadow-[0_16px_44px_hsl(var(--shadow)/0.36)] backdrop-blur-2xl md:hidden">
+        <nav className="fixed bottom-3 left-3 right-3 z-30 grid grid-cols-5 rounded-[22px] border border-white/60 bg-white/62 px-2 py-2 shadow-[0_16px_44px_hsl(var(--shadow)/0.36)] backdrop-blur-2xl dark:border-white/12 dark:bg-[hsl(var(--background-strong)/0.82)] md:hidden">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -117,7 +119,7 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
                 className={cn(
                   "flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium transition",
                   active
-                    ? "bg-white/74 text-[hsl(var(--primary))] shadow-[0_8px_20px_hsl(var(--shadow)/0.18)]"
+                    ? "mobile-nav-active bg-white/74 text-[hsl(var(--primary))] shadow-[0_8px_20px_hsl(var(--shadow)/0.18)] dark:bg-white/12 dark:drop-shadow-[0_0_8px_hsl(var(--primary)/0.34)]"
                     : "text-[hsl(var(--muted))]"
                 )}
               >
